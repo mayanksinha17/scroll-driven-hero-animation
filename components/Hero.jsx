@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Gauge, Zap, TrendingUp, ShieldCheck, ArrowDown, Sparkles } from "lucide-react";
+import { Gauge, Zap, TrendingUp, ShieldCheck, ArrowDown } from "lucide-react";
 
-// Ensure GSAP plugins are registered safely on the client
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
@@ -62,34 +61,28 @@ export default function Hero() {
   const statsContainerRef = useRef(null);
   const statsRefs = useRef([]);
   const letterRefs = useRef([]);
-  const speedRef = useRef(null);
-  const progressRef = useRef(null);
-
-  const [activeStatIndex, setActiveStatIndex] = useState(-1);
-  const [scrollPercent, setScrollPercent] = useState(0);
+  const progressTextRef = useRef(null);
+  const velocityTextRef = useRef(null);
 
   useEffect(() => {
-    // Check user preference for reduced motion
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Use GSAP context for proper cleanup in React
     const ctx = gsap.context(() => {
-      // 1. Initial entrance timeline on page load
+      // 1. Initial entrance animation on load
       const introTl = gsap.timeline({
         defaults: { ease: "power3.out" },
       });
 
       if (!prefersReducedMotion) {
-        // Initial state setups
-        gsap.set(headlineRef.current, { opacity: 0, y: 35 });
-        gsap.set(statsRefs.current, { opacity: 0, y: 25 });
+        gsap.set(headlineRef.current, { opacity: 0, y: 30 });
+        gsap.set(statsRefs.current, { opacity: 0, y: 20 });
         gsap.set(carRef.current, { opacity: 0, scale: 0.95 });
 
         introTl
           .to(headlineRef.current, {
             opacity: 1,
             y: 0,
-            duration: 1.0,
+            duration: 0.9,
           })
           .to(
             statsRefs.current,
@@ -97,9 +90,9 @@ export default function Hero() {
               opacity: 1,
               y: 0,
               duration: 0.7,
-              stagger: 0.1,
+              stagger: 0.08,
             },
-            "-=0.6"
+            "-=0.5"
           )
           .to(
             carRef.current,
@@ -108,10 +101,9 @@ export default function Hero() {
               scale: 1,
               duration: 0.8,
             },
-            "-=0.5"
+            "-=0.4"
           );
       } else {
-        // Reduced motion: instant display
         gsap.set([headlineRef.current, statsRefs.current, carRef.current], {
           opacity: 1,
           y: 0,
@@ -119,24 +111,11 @@ export default function Hero() {
         });
       }
 
-      // 2. Scroll-Driven Animation with GSAP ScrollTrigger
+      // 2. Scroll-Driven GSAP ScrollTrigger timeline
       if (roadRef.current && carRef.current && !prefersReducedMotion) {
         const letters = letterRefs.current.filter(Boolean);
+        const totalLetters = letters.length;
 
-        // Precompute letter trigger points relative to road container
-        const updateLetterPositions = () => {
-          if (!headlineRef.current) return [];
-          const roadRect = roadRef.current.getBoundingClientRect();
-          return letters.map((letter) => {
-            if (!letter) return 0;
-            const letterRect = letter.getBoundingClientRect();
-            return letterRect.left - roadRect.left + letterRect.width * 0.5;
-          });
-        };
-
-        let letterPositions = updateLetterPositions();
-
-        // Main ScrollTrigger timeline pinned over scroll distance
         const scrollTl = gsap.timeline({
           scrollTrigger: {
             trigger: containerRef.current,
@@ -146,91 +125,92 @@ export default function Hero() {
             scrub: 0.8,
             anticipatePin: 1,
             invalidateOnRefresh: true,
-            onRefresh: () => {
-              letterPositions = updateLetterPositions();
-            },
             onUpdate: (self) => {
               const progress = self.progress;
-              setScrollPercent(Math.round(progress * 100));
+              const percent = Math.round(progress * 100);
 
-              // Compute car's current right-front tip relative to the road
+              // Update HUD readouts via DOM refs for 120 FPS performance (zero React re-renders)
+              if (progressTextRef.current) {
+                progressTextRef.current.textContent = `${percent}%`;
+              }
+              if (velocityTextRef.current) {
+                velocityTextRef.current.textContent = `${Math.round(percent * 3.2)} KM/H`;
+              }
+
+              // Compute car translation and dynamic light trail
               if (roadRef.current && carRef.current) {
                 const roadWidth = roadRef.current.clientWidth;
                 const carWidth = carRef.current.clientWidth || 160;
-                const maxTravel = Math.max(roadWidth - carWidth - 24, 60);
+                const maxTravel = Math.max(roadWidth - carWidth - 16, 40);
                 const currentCarX = progress * maxTravel;
-                const carLeadPoint = currentCarX + carWidth * 0.75;
 
-                // Update light trail width
                 if (trailRef.current) {
                   trailRef.current.style.width = `${Math.min(currentCarX + carWidth * 0.45, roadWidth)}px`;
                 }
 
-                // Dynamic letter illumination
-                letterPositions.forEach((pos, idx) => {
-                  const letterEl = letters[idx];
+                // Sequential letter illumination based on scroll progress and character index
+                letters.forEach((letterEl, idx) => {
                   if (!letterEl) return;
-                  if (carLeadPoint >= pos) {
+                  const letterThreshold = (idx + 0.3) / totalLetters;
+                  if (progress >= letterThreshold) {
                     letterEl.style.opacity = "1";
                     letterEl.style.color = "#ffffff";
                     letterEl.style.textShadow =
-                      "0 0 16px rgba(16, 185, 129, 0.9), 0 0 32px rgba(16, 185, 129, 0.5)";
+                      "0 0 16px rgba(16, 185, 129, 0.95), 0 0 32px rgba(16, 185, 129, 0.5)";
                   } else {
-                    letterEl.style.opacity = "0.2";
+                    letterEl.style.opacity = "0.22";
                     letterEl.style.color = "#6b7280";
                     letterEl.style.textShadow = "none";
                   }
                 });
 
-                // Update active statistic milestone
-                if (progress < 0.12) {
-                  setActiveStatIndex(-1);
-                } else if (progress < 0.38) {
-                  setActiveStatIndex(0);
-                } else if (progress < 0.65) {
-                  setActiveStatIndex(1);
-                } else if (progress < 0.88) {
-                  setActiveStatIndex(2);
-                } else {
-                  setActiveStatIndex(3);
-                }
+                // Sequential statistic card active highlighting
+                const statMilestones = [0.12, 0.38, 0.65, 0.88];
+                statsRefs.current.forEach((cardEl, idx) => {
+                  if (!cardEl) return;
+                  const isActive = progress >= statMilestones[idx];
+                  if (isActive) {
+                    cardEl.classList.add("glass-panel-active", "scale-[1.02]");
+                    cardEl.classList.remove("glass-panel", "opacity-80");
+                  } else {
+                    cardEl.classList.remove("glass-panel-active", "scale-[1.02]");
+                    cardEl.classList.add("glass-panel", "opacity-80");
+                  }
+                });
               }
             },
           },
         });
 
-        // Drive car across track with subtle dynamic physics (tilt & micro-scale)
+        // Car motion physics: launch tilt, center cruising, deceleration
         scrollTl
-          // Segment 1: Acceleration & subtle launch tilt
           .to(carRef.current, {
             x: () => {
               const roadW = roadRef.current ? roadRef.current.clientWidth : window.innerWidth;
               const carW = carRef.current ? carRef.current.clientWidth : 160;
-              return (roadW - carW - 24) * 0.35;
+              return (roadW - carW - 16) * 0.35;
             },
             rotation: 1.2,
             scale: 1.02,
             ease: "power1.inOut",
             duration: 0.35,
           })
-          // Segment 2: High-speed cruising through center milestone
           .to(carRef.current, {
             x: () => {
               const roadW = roadRef.current ? roadRef.current.clientWidth : window.innerWidth;
               const carW = carRef.current ? carRef.current.clientWidth : 160;
-              return (roadW - carW - 24) * 0.72;
+              return (roadW - carW - 16) * 0.72;
             },
             rotation: -0.8,
             scale: 1.04,
             ease: "none",
             duration: 0.35,
           })
-          // Segment 3: Deceleration to end boundary
           .to(carRef.current, {
             x: () => {
               const roadW = roadRef.current ? roadRef.current.clientWidth : window.innerWidth;
               const carW = carRef.current ? carRef.current.clientWidth : 160;
-              return roadW - carW - 24;
+              return roadW - carW - 16;
             },
             rotation: 0,
             scale: 1.0,
@@ -269,13 +249,15 @@ export default function Hero() {
           <div className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm font-mono">
             <div className="hidden sm:flex items-center gap-2 text-gray-400">
               <span>VELOCITY:</span>
-              <span className="text-emerald-400 font-bold">
-                {Math.round(scrollPercent * 3.2)} KM/H
+              <span ref={velocityTextRef} className="text-emerald-400 font-bold">
+                0 KM/H
               </span>
             </div>
             <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
               <span className="text-gray-400">PROGRESS:</span>
-              <span className="text-emerald-400 font-bold">{scrollPercent}%</span>
+              <span ref={progressTextRef} className="text-emerald-400 font-bold">
+                0%
+              </span>
             </div>
           </div>
         </header>
@@ -370,7 +352,6 @@ export default function Hero() {
           >
             {STATS_DATA.map((stat, idx) => {
               const Icon = stat.icon;
-              const isActive = activeStatIndex >= idx;
 
               return (
                 <article
@@ -378,31 +359,19 @@ export default function Hero() {
                   ref={(el) => {
                     if (el) statsRefs.current[idx] = el;
                   }}
-                  className={`p-3 sm:p-4 rounded-xl transition-all duration-300 transform ${
-                    isActive ? "glass-panel-active scale-[1.02]" : "glass-panel opacity-80 hover:opacity-100"
-                  }`}
+                  className="glass-panel opacity-80 hover:opacity-100 p-3 sm:p-4 rounded-xl transition-all duration-300 transform"
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <span
-                      className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full font-bold"
-                      style={{
-                        backgroundColor: isActive ? `${stat.activeColor}25` : "rgba(255,255,255,0.05)",
-                        color: isActive ? stat.activeColor : "#9ca3af",
-                      }}
+                      className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full font-bold bg-white/5 text-gray-400"
                     >
                       {stat.tag}
                     </span>
-                    <Icon
-                      className="w-4 h-4 transition-transform duration-300"
-                      style={{ color: isActive ? stat.activeColor : "#6b7280" }}
-                    />
+                    <Icon className="w-4 h-4 text-gray-500 transition-transform duration-300" />
                   </div>
 
                   <div className="flex items-baseline gap-2">
-                    <h2
-                      className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight"
-                      style={{ color: isActive ? "#ffffff" : "#d1d5db" }}
-                    >
+                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-gray-100">
                       {stat.value}
                     </h2>
                   </div>
