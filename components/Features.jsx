@@ -1,30 +1,34 @@
 "use client";
 
 import React from "react";
-import { Cpu, Zap, Activity, Layers, ArrowUpRight, CheckCircle2 } from "lucide-react";
+import { Cpu, Zap, Activity, Layers, ArrowUpRight } from "lucide-react";
 
 const ARCHITECTURE_FEATURES = [
   {
-    title: "Zero-Lag GSAP ScrollTrigger",
-    description: "Calculated with transforms (x, rotation, scale) to prevent GPU layout reflows and deliver solid 60/120fps scrolling.",
+    code: "01",
+    title: "Hardware Transform Scrubbing",
+    description: "Orchestrated with GPU-accelerated translate3d and rotation matrices to eliminate layout recalculations.",
     icon: Zap,
     metric: "120 FPS Target",
   },
   {
-    title: "Responsive Viewport Mapping",
-    description: "Dynamic bounding rect interpolation ensuring letter illuminates precisely regardless of screen aspect ratio or mobile orientation.",
+    code: "02",
+    title: "Dynamic Viewport Calibration",
+    description: "Responsive threshold mapping ensures precise character revelation across both desktop and compact mobile screens.",
     icon: Layers,
     metric: "Fluid clamp()",
   },
   {
-    title: "Dynamic Light Trail Synthesis",
-    description: "Multi-stop alpha gradient that dynamically syncs with the car's leading edge with zero frame stuttering.",
+    code: "03",
+    title: "Light Guide Synthesis",
+    description: "A multi-stop gradient emission directly synced to the vehicle's leading edge without frame drops.",
     icon: Activity,
     metric: "0ms DOM delay",
   },
   {
-    title: "Accessible Motion Controls",
-    description: "Native prefers-reduced-motion media query detection with graceful fallback to static high-contrast rendering.",
+    code: "04",
+    title: "Motion Accessibility",
+    description: "Native media query detection honoring system reduced-motion preferences with static high-contrast rendering.",
     icon: Cpu,
     metric: "WCAG 2.1 AA",
   },
@@ -32,50 +36,48 @@ const ARCHITECTURE_FEATURES = [
 
 export default function Features() {
   return (
-    <section className="relative z-20 bg-[#08090D] border-t border-white/10 px-4 sm:px-8 py-20">
+    <section className="relative z-20 bg-[#090A0D] border-t border-white/10 px-5 sm:px-10 md:px-16 py-24">
       <div className="max-w-7xl mx-auto">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+        {/* Section Header: Confident Editorial Heading */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
           <div>
-            <div className="flex items-center gap-2 text-emerald-400 font-mono text-xs tracking-widest uppercase mb-3">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              <span>Engine Architecture</span>
-            </div>
-            <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white">
+            <span className="text-neutral-500 font-mono text-xs tracking-widest uppercase mb-3 block">
+              ENGINEERING NOTE // 02
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white uppercase leading-tight font-sans">
               ENGINEERED FOR <br className="hidden sm:inline" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
-                SCROLL-DRIVEN PRECISION
-              </span>
+              SCROLL-DRIVEN PRECISION
             </h2>
           </div>
-          <p className="text-gray-400 max-w-md text-sm sm:text-base">
-            Reproducing physical velocity on the web through hardware-accelerated transforms and pinned scroll timeline orchestration.
+          <p className="text-neutral-400 max-w-md text-sm sm:text-base leading-relaxed">
+            Translating physical velocity to the digital medium via pinned timeline orchestration and GPU-accelerated motion layers.
           </p>
         </div>
 
-        {/* Feature Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Feature Grid: Clean Architectural Hairline Cells */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border-t border-l border-white/10">
           {ARCHITECTURE_FEATURES.map((feature, idx) => {
             const Icon = feature.icon;
             return (
               <div
                 key={idx}
-                className="glass-panel p-6 rounded-2xl hover:border-emerald-500/40 transition-all duration-300 group flex flex-col justify-between"
+                className="p-8 border-r border-b border-white/10 bg-[#0c0e12]/60 hover:bg-[#11141a] transition-colors duration-300 flex flex-col justify-between group"
               >
                 <div>
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all">
-                    <Icon className="w-6 h-6 text-emerald-400" />
+                  <div className="flex items-center justify-between mb-8">
+                    <span className="text-xs font-mono text-neutral-500">{feature.code}</span>
+                    <Icon className="w-5 h-5 text-neutral-400 group-hover:text-white transition-colors" />
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-2 group-hover:text-emerald-300 transition-colors">
+                  <h3 className="text-base font-bold text-white mb-2.5">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-400 text-xs sm:text-sm leading-relaxed mb-6">
+                  <p className="text-neutral-400 text-xs sm:text-sm leading-relaxed mb-8">
                     {feature.description}
                   </p>
                 </div>
                 <div className="pt-4 border-t border-white/5 flex items-center justify-between text-xs font-mono">
-                  <span className="text-emerald-400/90 font-semibold">{feature.metric}</span>
-                  <ArrowUpRight className="w-4 h-4 text-gray-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                  <span className="text-neutral-400 font-medium">{feature.metric}</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
                 </div>
               </div>
             );
@@ -83,13 +85,10 @@ export default function Features() {
         </div>
 
         {/* Footer info bar */}
-        <div className="mt-20 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 font-mono gap-4">
-          <p>© 2026 Scroll-Driven Hero Animation. Built with Next.js, Tailwind CSS & GSAP ScrollTrigger.</p>
+        <div className="mt-20 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 font-mono gap-4">
+          <p>© 2026 Scroll-Driven Hero Animation. Next.js & GSAP ScrollTrigger.</p>
           <div className="flex items-center gap-6">
-            <span className="flex items-center gap-1.5 text-emerald-400">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Production Ready</span>
-            </span>
+            <span className="text-neutral-400">Production Build</span>
             <span>Inspired by Reference Concept</span>
           </div>
         </div>

@@ -4,7 +4,7 @@ import React, { useEffect, useRef } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Gauge, Zap, TrendingUp, ShieldCheck, ArrowDown } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -14,38 +14,30 @@ const STATS_DATA = [
   {
     id: 1,
     value: "58%",
-    label: "Pickup Point Use",
-    desc: "Surge in automated terminal pickup adoption",
-    icon: TrendingUp,
-    activeColor: "#10b981",
-    tag: "EFFICIENCY",
+    label: "Pickup point usage",
+    desc: "Surge in automated terminal adoption",
+    code: "01",
   },
   {
     id: 2,
     value: "23%",
-    label: "Customer Calls",
-    desc: "Direct reduction in inbound support queues",
-    icon: Gauge,
-    activeColor: "#06b6d4",
-    tag: "AUTOMATION",
+    label: "Fewer customer calls",
+    desc: "Direct reduction in inbound queue load",
+    code: "02",
   },
   {
     id: 3,
     value: "27%",
-    label: "User Engagement",
-    desc: "Increase in daily active platform interactions",
-    icon: Zap,
-    activeColor: "#8b5cf6",
-    tag: "GROWTH",
+    label: "Engagement increase",
+    desc: "Higher daily active driver interactions",
+    code: "03",
   },
   {
     id: 4,
     value: "40%",
-    label: "Support Overhead",
-    desc: "Lower operational cost per resolved ticket",
-    icon: ShieldCheck,
-    activeColor: "#f59e0b",
-    tag: "OPTIMIZATION",
+    label: "Support overhead reduction",
+    desc: "Optimized operational cost per inquiry",
+    code: "04",
   },
 ];
 
@@ -60,36 +52,36 @@ export default function Hero() {
   const headlineRef = useRef(null);
   const statsContainerRef = useRef(null);
   const statsRefs = useRef([]);
+  const statsDividersRef = useRef([]);
   const letterRefs = useRef([]);
   const progressTextRef = useRef(null);
-  const velocityTextRef = useRef(null);
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const ctx = gsap.context(() => {
-      // 1. Initial entrance animation on load
+      // 1. Staggered entrance on initial page load
       const introTl = gsap.timeline({
         defaults: { ease: "power3.out" },
       });
 
       if (!prefersReducedMotion) {
-        gsap.set(headlineRef.current, { opacity: 0, y: 30 });
-        gsap.set(statsRefs.current, { opacity: 0, y: 20 });
-        gsap.set(carRef.current, { opacity: 0, scale: 0.95 });
+        gsap.set(headlineRef.current, { opacity: 0, y: 24 });
+        gsap.set(statsRefs.current, { opacity: 0, y: 16 });
+        gsap.set(carRef.current, { opacity: 0, scale: 0.96 });
 
         introTl
           .to(headlineRef.current, {
             opacity: 1,
             y: 0,
-            duration: 0.9,
+            duration: 0.85,
           })
           .to(
             statsRefs.current,
             {
               opacity: 1,
               y: 0,
-              duration: 0.7,
+              duration: 0.65,
               stagger: 0.08,
             },
             "-=0.5"
@@ -99,7 +91,7 @@ export default function Hero() {
             {
               opacity: 1,
               scale: 1,
-              duration: 0.8,
+              duration: 0.75,
             },
             "-=0.4"
           );
@@ -129,15 +121,12 @@ export default function Hero() {
               const progress = self.progress;
               const percent = Math.round(progress * 100);
 
-              // Update HUD readouts via DOM refs for 120 FPS performance (zero React re-renders)
+              // Update minimal progress readout via direct DOM reference (zero re-render overhead)
               if (progressTextRef.current) {
                 progressTextRef.current.textContent = `${percent}%`;
               }
-              if (velocityTextRef.current) {
-                velocityTextRef.current.textContent = `${Math.round(percent * 3.2)} KM/H`;
-              }
 
-              // Compute car translation and dynamic light trail
+              // Compute car translation and soft track illumination
               if (roadRef.current && carRef.current) {
                 const roadWidth = roadRef.current.clientWidth;
                 const carWidth = carRef.current.clientWidth || 160;
@@ -148,33 +137,38 @@ export default function Hero() {
                   trailRef.current.style.width = `${Math.min(currentCarX + carWidth * 0.45, roadWidth)}px`;
                 }
 
-                // Sequential letter illumination based on scroll progress and character index
+                // Sequential letter illumination: crisp, high-contrast pure white typography
                 letters.forEach((letterEl, idx) => {
                   if (!letterEl) return;
                   const letterThreshold = (idx + 0.3) / totalLetters;
                   if (progress >= letterThreshold) {
                     letterEl.style.opacity = "1";
                     letterEl.style.color = "#ffffff";
-                    letterEl.style.textShadow =
-                      "0 0 16px rgba(16, 185, 129, 0.95), 0 0 32px rgba(16, 185, 129, 0.5)";
                   } else {
-                    letterEl.style.opacity = "0.22";
+                    letterEl.style.opacity = "0.25";
                     letterEl.style.color = "#6b7280";
-                    letterEl.style.textShadow = "none";
                   }
                 });
 
-                // Sequential statistic card active highlighting
+                // Sequential metric highlights with understated active state
                 const statMilestones = [0.12, 0.38, 0.65, 0.88];
-                statsRefs.current.forEach((cardEl, idx) => {
-                  if (!cardEl) return;
+                statsRefs.current.forEach((metricEl, idx) => {
+                  if (!metricEl) return;
+                  const dividerEl = statsDividersRef.current[idx];
                   const isActive = progress >= statMilestones[idx];
+
                   if (isActive) {
-                    cardEl.classList.add("glass-panel-active", "scale-[1.02]");
-                    cardEl.classList.remove("glass-panel", "opacity-80");
+                    metricEl.classList.add("text-white");
+                    metricEl.classList.remove("text-neutral-400");
+                    if (dividerEl) {
+                      dividerEl.style.backgroundColor = "rgba(255, 255, 255, 0.45)";
+                    }
                   } else {
-                    cardEl.classList.remove("glass-panel-active", "scale-[1.02]");
-                    cardEl.classList.add("glass-panel", "opacity-80");
+                    metricEl.classList.remove("text-white");
+                    metricEl.classList.add("text-neutral-400");
+                    if (dividerEl) {
+                      dividerEl.style.backgroundColor = "rgba(255, 255, 255, 0.08)";
+                    }
                   }
                 });
               }
@@ -182,7 +176,7 @@ export default function Hero() {
           },
         });
 
-        // Car motion physics: launch tilt, center cruising, deceleration
+        // Car motion physics: restrained launch tilt, centered cruise, deceleration
         scrollTl
           .to(carRef.current, {
             x: () => {
@@ -190,7 +184,7 @@ export default function Hero() {
               const carW = carRef.current ? carRef.current.clientWidth : 160;
               return (roadW - carW - 16) * 0.35;
             },
-            rotation: 1.2,
+            rotation: 1.0,
             scale: 1.02,
             ease: "power1.inOut",
             duration: 0.35,
@@ -201,8 +195,8 @@ export default function Hero() {
               const carW = carRef.current ? carRef.current.clientWidth : 160;
               return (roadW - carW - 16) * 0.72;
             },
-            rotation: -0.8,
-            scale: 1.04,
+            rotation: -0.6,
+            scale: 1.03,
             ease: "none",
             duration: 0.35,
           })
@@ -224,52 +218,38 @@ export default function Hero() {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative w-full bg-[#08090D] text-gray-100">
+    <div ref={containerRef} className="relative w-full bg-[#090A0D] text-gray-100">
       {/* Pinned Viewport Container */}
       <section
         ref={trackRef}
         aria-label="Hero Section"
-        className="relative w-full h-screen min-h-[640px] flex flex-col justify-between overflow-hidden px-4 sm:px-8 py-6 select-none"
+        className="relative w-full h-screen min-h-[640px] flex flex-col justify-between overflow-hidden px-5 sm:px-10 md:px-16 py-8 select-none"
       >
-        {/* Ambient background glow & grid */}
-        <div className="absolute inset-0 grid-pattern pointer-events-none opacity-40" />
-        <div className="ambient-glow w-[500px] h-[500px] bg-emerald-600/10 top-1/4 left-1/3" />
-        <div className="ambient-glow w-[400px] h-[400px] bg-cyan-600/10 -bottom-10 right-1/4" />
-
-        {/* Top Bar: Telemetry & Navigation */}
+        {/* Subtle, restrained top editorial header */}
         <header className="relative z-20 flex items-center justify-between border-b border-white/10 pb-4 max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-3">
-            <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_12px_#10b981]" />
-            <span className="text-xs sm:text-sm font-mono tracking-widest text-emerald-400 font-semibold uppercase">
-              KINETIC ENGINE // SYSTEM V2.4
+            <span className="text-[11px] sm:text-xs font-mono tracking-widest text-neutral-400 uppercase font-medium">
+              ITZFIZZ / 2026 CAMPAIGN
             </span>
           </div>
 
-          {/* Real-time telemetry HUD */}
-          <div className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm font-mono">
-            <div className="hidden sm:flex items-center gap-2 text-gray-400">
-              <span>VELOCITY:</span>
-              <span ref={velocityTextRef} className="text-emerald-400 font-bold">
-                0 KM/H
-              </span>
-            </div>
-            <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
-              <span className="text-gray-400">PROGRESS:</span>
-              <span ref={progressTextRef} className="text-emerald-400 font-bold">
-                0%
-              </span>
-            </div>
+          <div className="flex items-center gap-4 text-xs font-mono text-neutral-400">
+            <span>INDEX</span>
+            <span className="text-neutral-600">/</span>
+            <span ref={progressTextRef} className="text-white font-medium">
+              0%
+            </span>
           </div>
         </header>
 
-        {/* Center Canvas: Giant Headline & Animated Road / Car */}
-        <div className="relative z-10 flex-1 flex flex-col justify-center items-center max-w-7xl mx-auto w-full my-auto py-4">
-          {/* Main Dominant Headline */}
+        {/* Center Section: Editorial Headline & Track */}
+        <div className="relative z-10 flex-1 flex flex-col justify-center items-center max-w-7xl mx-auto w-full my-auto py-2">
+          {/* Confident Letter-Spaced Headline */}
           <div
             ref={headlineRef}
-            className="w-full text-center tracking-[0.25em] sm:tracking-[0.45em] md:tracking-[0.6em] mb-4 sm:mb-8"
+            className="w-full text-center tracking-[0.25em] sm:tracking-[0.45em] md:tracking-[0.65em] mb-6 sm:mb-10"
           >
-            <h1 className="font-extrabold text-3xl sm:text-5xl md:text-7xl lg:text-8xl flex flex-wrap justify-center items-center gap-y-2 uppercase leading-tight">
+            <h1 className="font-extrabold text-3xl sm:text-5xl md:text-7xl lg:text-8xl flex flex-wrap justify-center items-center gap-y-2 uppercase leading-none font-sans">
               {HEADLINE_TEXT.split(" ").map((word, wordIdx) => (
                 <span key={wordIdx} className="inline-flex items-center mx-2 sm:mx-4">
                   {word.split("").map((char, charIdx) => {
@@ -280,7 +260,7 @@ export default function Hero() {
                         ref={(el) => {
                           if (el) letterRefs.current[globalIdx] = el;
                         }}
-                        className="transition-all duration-150 opacity-25 text-gray-500 select-none inline-block transform hover:scale-110"
+                        className="transition-colors duration-150 opacity-25 text-gray-500 select-none inline-block"
                       >
                         {char}
                       </span>
@@ -291,50 +271,41 @@ export default function Hero() {
             </h1>
           </div>
 
-          {/* Road / Kinetic Track */}
+          {/* Minimalist Runway Track */}
           <div
             ref={roadRef}
-            className="relative w-full h-[140px] sm:h-[180px] md:h-[210px] bg-gradient-to-b from-[#11141c] to-[#0c0e14] border-y border-white/10 rounded-2xl overflow-hidden shadow-2xl flex items-center"
+            className="relative w-full h-[120px] sm:h-[160px] md:h-[190px] bg-[#101217] border-y border-white/10 overflow-hidden flex items-center"
           >
-            {/* Track centerline dashes */}
-            <div className="absolute inset-0 flex items-center pointer-events-none">
-              <div className="w-full border-b border-dashed border-white/15 h-0" />
+            {/* Minimal architectural track markers */}
+            <div className="absolute top-2 left-0 right-0 flex justify-between px-6 text-[10px] font-mono text-neutral-600 pointer-events-none uppercase">
+              <span>01 // START</span>
+              <span>02</span>
+              <span>03</span>
+              <span>04 // TERMINAL</span>
             </div>
 
-            {/* Neon Speed Markers on Track */}
-            <div className="absolute top-2 left-0 right-0 flex justify-between px-6 text-[10px] font-mono text-gray-600 pointer-events-none uppercase">
-              <span>00 // START</span>
-              <span>25 // SECTOR A</span>
-              <span>50 // APEX</span>
-              <span>75 // SECTOR B</span>
-              <span>100 // TERMINAL</span>
-            </div>
-
-            {/* Glowing neon emission trail behind the car */}
+            {/* Restrained light guide behind the car */}
             <div
               ref={trailRef}
               className="absolute left-0 top-0 bottom-0 pointer-events-none z-0 transition-all duration-75"
               style={{
                 width: "0px",
                 background:
-                  "linear-gradient(90deg, rgba(16, 185, 129, 0.02) 0%, rgba(16, 185, 129, 0.25) 80%, rgba(16, 185, 129, 0.6) 100%)",
-                boxShadow: "0 0 35px rgba(16, 185, 129, 0.4)",
+                  "linear-gradient(90deg, rgba(255, 255, 255, 0.01) 0%, rgba(16, 185, 129, 0.12) 75%, rgba(16, 185, 129, 0.28) 100%)",
               }}
             />
 
-            {/* Animated Car Visual */}
+            {/* Car Visual with Realistic Contact Shadow */}
             <div
               ref={carRef}
-              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 cursor-grab active:cursor-grabbing will-change-transform"
+              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 will-change-transform car-shadow"
               style={{
                 width: "clamp(120px, 18vw, 220px)",
-                filter:
-                  "drop-shadow(0 15px 25px rgba(0,0,0,0.9)) drop-shadow(0 0 15px rgba(16,185,129,0.3))",
               }}
             >
               <Image
                 src="/car.png"
-                alt="High Performance Aerodynamic Supercar Top View"
+                alt="Aerodynamic performance car top perspective"
                 width={700}
                 height={390}
                 priority
@@ -344,54 +315,57 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Bottom Section: 4 Interactive Impact / Statistic Blocks */}
+        {/* Bottom Section: Clean Editorial Statistics */}
         <div className="relative z-20 max-w-7xl mx-auto w-full pb-2">
           <div
             ref={statsContainerRef}
-            className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6"
+            className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 lg:gap-12"
           >
-            {STATS_DATA.map((stat, idx) => {
-              const Icon = stat.icon;
-
-              return (
-                <article
-                  key={stat.id}
-                  ref={(el) => {
-                    if (el) statsRefs.current[idx] = el;
-                  }}
-                  className="glass-panel opacity-80 hover:opacity-100 p-3 sm:p-4 rounded-xl transition-all duration-300 transform"
-                >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span
-                      className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full font-bold bg-white/5 text-gray-400"
-                    >
-                      {stat.tag}
-                    </span>
-                    <Icon className="w-4 h-4 text-gray-500 transition-transform duration-300" />
-                  </div>
-
-                  <div className="flex items-baseline gap-2">
-                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-gray-100">
+            {STATS_DATA.map((stat, idx) => (
+              <article
+                key={stat.id}
+                ref={(el) => {
+                  if (el) statsRefs.current[idx] = el;
+                }}
+                className="transition-colors duration-300 text-neutral-400 group flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-baseline justify-between mb-2">
+                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-inherit">
                       {stat.value}
                     </h2>
+                    <span className="text-[10px] font-mono text-neutral-500 font-medium">
+                      {stat.code}
+                    </span>
                   </div>
 
-                  <h3 className="text-xs sm:text-sm font-semibold text-gray-200 mt-1 line-clamp-1">
+                  {/* Clean hairline separator */}
+                  <div
+                    ref={(el) => {
+                      if (el) statsDividersRef.current[idx] = el;
+                    }}
+                    className="w-full h-px bg-white/10 transition-colors duration-300 mb-2.5"
+                  />
+
+                  <h3 className="text-xs sm:text-sm font-medium text-neutral-300">
                     {stat.label}
                   </h3>
 
-                  <p className="text-[11px] sm:text-xs text-gray-400 mt-0.5 line-clamp-1">
+                  <p className="text-[11px] sm:text-xs text-neutral-500 mt-0.5 leading-snug line-clamp-2">
                     {stat.desc}
                   </p>
-                </article>
-              );
-            })}
+                </div>
+              </article>
+            ))}
           </div>
 
-          {/* Scroll down prompt cue */}
-          <div className="mt-3 flex items-center justify-center gap-2 text-xs text-gray-400 font-mono">
-            <span className="tracking-widest uppercase">Scroll Down to Drive</span>
-            <ArrowDown className="w-3.5 h-3.5 animate-bounce text-emerald-400" />
+          {/* Minimal scroll prompt */}
+          <div className="mt-6 flex items-center justify-between text-[11px] text-neutral-500 font-mono">
+            <span className="tracking-widest uppercase">Scroll to interact</span>
+            <div className="flex items-center gap-1.5 text-neutral-400">
+              <span className="text-[10px] uppercase tracking-wider">Scroll</span>
+              <ArrowDown className="w-3 h-3 animate-pulse text-neutral-300" />
+            </div>
           </div>
         </div>
       </section>
