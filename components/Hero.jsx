@@ -42,6 +42,7 @@ const STATS_DATA = [
 ];
 
 const HEADLINE_TEXT = "WELCOME ITZFIZZ";
+const BASE_PATH = process.env.NODE_ENV === "production" ? "/scroll-driven-hero-animation" : "";
 
 export default function Hero() {
   const containerRef = useRef(null);
@@ -304,7 +305,7 @@ export default function Hero() {
               }}
             >
               <Image
-                src="/car.png"
+                src={`${BASE_PATH}/car.png`}
                 alt="Aerodynamic performance car top perspective"
                 width={700}
                 height={390}
